@@ -1,154 +1,85 @@
-import { useState, useRef, useEffect } from 'react'
-import { useTheme } from '../context/ThemeContext'
+import { useState, useEffect } from 'react'
 import './Navbar.css'
 
 const navLinks = [
+  { label: 'Home', href: '#' },
   { label: 'About', href: '#about' },
   { label: 'Experience', href: '#experience' },
-  { label: 'Skills', href: '#skills' },
-  { label: 'Education', href: '#education' },
-  { label: 'Contact', href: 'mailto:singhalharshit70@gmail.com' },
+  { label: 'Projects', href: '#projects' },
+  { label: 'Contact', href: '#contact' },
 ]
 
 export default function Navbar() {
-  const [open, setOpen] = useState(false)
-  const { theme, toggleTheme } = useTheme()
-  const contentRef = useRef(null)
+  const [scrolled, setScrolled] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [activeLink, setActiveLink] = useState('#')
 
   useEffect(() => {
-    const handleKey = (e) => {
-      if (e.key === 'Escape') setOpen(false)
-    }
-    window.addEventListener('keydown', handleKey)
-    return () => window.removeEventListener('keydown', handleKey)
+    const onScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
   useEffect(() => {
-    document.body.style.overflow = open ? 'hidden' : ''
+    const sections = ['contact', 'projects', 'experience', 'about']
+    const onScroll = () => {
+      const scrollPos = window.scrollY + 200
+      for (const id of sections) {
+        const el = document.getElementById(id)
+        if (el && el.offsetTop <= scrollPos) {
+          setActiveLink(`#${id}`)
+          return
+        }
+      }
+      setActiveLink('#')
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
-  }, [open])
+  }, [mobileOpen])
 
   return (
-    <header className="nav-header">
-      <div
-        className={`nav-container ${open ? 'nav-container--open' : ''}`}
-      >
-        {/* Top bar */}
-        <div className="nav-bar">
-          <a href="#" className="nav-brand" aria-label="Home" onClick={() => setOpen(false)}>
-            <span className="nav-brand__text">Harshit Singhal</span>
-          </a>
+    <nav className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
+      <div className="navbar__inner">
+        <a href="#" className="navbar__brand">HARSHIT</a>
 
-          <div className="nav-bar__right">
-            {/* Theme toggle */}
-            <button
-              className="nav-theme-toggle"
-              onClick={toggleTheme}
-              aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+        <div className={`navbar__links ${mobileOpen ? 'navbar__links--open' : ''}`}>
+          {navLinks.map(({ label, href }) => (
+            <a
+              key={label}
+              href={href}
+              className={`navbar__link ${activeLink === href ? 'navbar__link--active' : ''}`}
+              onClick={() => setMobileOpen(false)}
             >
-              <div className="nav-theme-toggle__bg" />
-              {theme === 'light' ? (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                </svg>
-              ) : (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="5" />
-                  <line x1="12" y1="1" x2="12" y2="3" />
-                  <line x1="12" y1="21" x2="12" y2="23" />
-                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                  <line x1="1" y1="12" x2="3" y2="12" />
-                  <line x1="21" y1="12" x2="23" y2="12" />
-                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-                </svg>
-              )}
-            </button>
-
-            {/* Hamburger / Close */}
-            <button
-              className="nav-toggle"
-              onClick={() => setOpen(!open)}
-              aria-label={open ? 'Close menu' : 'Open menu'}
-            >
-              <div className="nav-toggle__bg" />
-              {open ? (
-                <>
-                  <span className="nav-toggle__x nav-toggle__x--1" />
-                  <span className="nav-toggle__x nav-toggle__x--2" />
-                </>
-              ) : (
-                <>
-                  <span className="nav-toggle__line nav-toggle__line--1" />
-                  <span className="nav-toggle__line nav-toggle__line--2" />
-                </>
-              )}
-            </button>
-          </div>
+              {label}
+            </a>
+          ))}
         </div>
 
-        {/* Expandable content */}
-        <div
-          className={`nav-panel ${open ? 'nav-panel--open' : ''}`}
-          ref={contentRef}
+        <a href={`${import.meta.env.BASE_URL}HARSHIT_SINGHAL_Resume.pdf`} download className="navbar__cta">
+          Resume
+        </a>
+
+        <button
+          className="navbar__mobile-toggle"
+          onClick={() => setMobileOpen(!mobileOpen)}
+          aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
         >
-          <div className="nav-panel__inner">
-            <div className="nav-panel__grid">
-              <div className="nav-panel__links">
-                <nav className="nav-panel__nav">
-                  {navLinks.map(({ label, href }) => (
-                    <a
-                      key={label}
-                      href={href}
-                      className="nav-panel__link"
-                      onClick={() => setOpen(false)}
-                    >
-                      {label}
-                    </a>
-                  ))}
-                </nav>
-              </div>
-
-              <div className="nav-panel__card">
-                <div className="nav-panel__card-inner">
-                  <div className="nav-panel__card-content">
-                    <h3 className="nav-panel__card-title">Software Engineer</h3>
-                    <p className="nav-panel__card-text">
-                      Building performant web apps with React, TypeScript, and modern tooling.
-                      Currently at FuboTV working on video AI platforms.
-                    </p>
-                    <a href="mailto:singhalharshit70@gmail.com" className="nav-panel__card-btn">
-                      <span className="nav-panel__card-btn-dot" />
-                      <span>Get in Touch</span>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="nav-panel__footer">
-              <div className="nav-panel__footer-left">
-                <p className="nav-panel__footer-text">Bengaluru, India</p>
-              </div>
-              <div className="nav-panel__footer-mid">
-                <p className="nav-panel__footer-text">FuboTV — 2024–Present</p>
-              </div>
-              <div className="nav-panel__footer-right">
-                <a
-                  className="nav-panel__footer-link"
-                  href="https://www.linkedin.com/in/harshit-singhal-56944a182/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <span>LinkedIn</span>
-                  <span className="nav-panel__footer-dot" />
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
+          {mobileOpen ? (
+            <span className="material-symbols-outlined">close</span>
+          ) : (
+            <span className="material-symbols-outlined">menu</span>
+          )}
+        </button>
       </div>
-    </header>
+
+      {mobileOpen && (
+        <div className="navbar__mobile-overlay" onClick={() => setMobileOpen(false)} />
+      )}
+    </nav>
   )
 }
